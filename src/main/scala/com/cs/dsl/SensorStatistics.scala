@@ -15,10 +15,11 @@ object SensorStatistics {
     val spark = SparkSession.builder.appName("SensorStatistics").master("local").getOrCreate()
     import spark.implicits._
     val schema = Encoders.product[SensorStatic].schema
-    val groupedDF = spark.read.format("csv").option("header", "true").option("delimiter", ",").schema(schema).load("src/main/resources/data").as[SensorStatic]
+    val dirPath = if(args.length == 0) "src/main/resources/data" else args(0).toString
+    val groupedDF = spark.read.format("csv").option("header", "true").option("delimiter", ",").schema(schema).load(dirPath).as[SensorStatic]
 
     groupedDF.persist(StorageLevel.MEMORY_ONLY)
-    println("Num of processed files:" + new GetFileCount().getFilesCount("src/main/resources/data"))
+    println("Num of processed files:" + new GetFileCount().getFilesCount(dirPath))
 
     val distributedwatch = new Distributedwatch(spark.sparkContext)
     for (k <- groupedDF.rdd.collect()) {
