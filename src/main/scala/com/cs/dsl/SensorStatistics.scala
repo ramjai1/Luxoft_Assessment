@@ -51,15 +51,18 @@ object SensorStatistics {
       }
     )
       .map {
-        case (k, (min1, sum1, max1, count1)) => (k, (min1, sum1 / count1, max1))
-      }
+        case (k, (min1, sum1, max1, count1)) => {
+          val avg = sum1 / count1
+          (avg, (k,min1, avg, max1))
+        }
+      }.sortByKey(ascending= false)
 
-    tup.foreach(x => println(x._1 + "," + x._2))
+    tup.foreach(x => println(x._2))
 
     val sensorListWithNan = groupedDF.rdd.map(row => (row.sensor_id, row.humidity)).groupByKey
     for ((k, v) <- sensorListWithNan.collect()) {
       if (v.toList.length == 1 && v.toList(0) == "NaN")
-        println(k.toString + ",(NaN," + "NaN," + "Nan)")
+        println("("+k.toString + ",NaN," + "NaN," + "Nan)")
     }
   }
 }
